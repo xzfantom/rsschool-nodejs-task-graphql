@@ -5,6 +5,11 @@ import { MemberType, MemberTypeId } from './member.js';
 import { Post } from './post.js';
 import { UserType } from './user.js';
 import { IContextType } from '../index.js';
+import {
+  ResolveTree,
+  parseResolveInfo,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
 
 export const Query = new GraphQLObjectType<unknown, IContextType>({
   name: 'Query',
@@ -39,7 +44,6 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
         const { fastify } = context;
         const { prisma } = fastify;
         const memberTypes = await prisma.memberType.findMany();
-        // console.log(memberTypes);
         return memberTypes;
       },
     },
@@ -86,17 +90,27 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_parent, _args, { userLoader, fastify }: IContextType) => {
+      resolve: async (_parent, _args, { userLoader, fastify }: IContextType, info) => {
         const { prisma } = fastify;
+
+        const parsedResolveInfoFragment = parseResolveInfo(info);
+        const { fields }: { fields: { [key in string]: ResolveTree } } =
+          simplifyParsedResolveInfoFragmentWithType(
+            parsedResolveInfoFragment as ResolveTree,
+            new GraphQLList(UserType),
+          );
+
+        const userSubscribedTo = !!fields.userSubscribedTo;
+        const subscribedToUser = !!fields.subscribedToUser;
+
         const users = await prisma.user.findMany({
           include: {
-            userSubscribedTo: true,
-            subscribedToUser: true,
+            userSubscribedTo,
+            subscribedToUser,
           },
         });
 
         users.forEach((user) => {
-          console.log('USER', user.userSubscribedTo);
           userLoader.prime(user.id, user);
         });
 
