@@ -7,7 +7,7 @@ import {
 import { UUIDType } from './uuid.js';
 import { IContextType } from '../index.js';
 
-type IPost = {
+export type IPost = {
   id: string;
   title: string;
   content: string;

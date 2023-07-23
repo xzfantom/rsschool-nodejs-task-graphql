@@ -86,11 +86,20 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_parent, _args, context) => {
-        const { fastify } = context;
+      resolve: async (_parent, _args, { userLoader, fastify }: IContextType) => {
         const { prisma } = fastify;
-        const users = await prisma.user.findMany();
-        // console.log(users);
+        const users = await prisma.user.findMany({
+          include: {
+            userSubscribedTo: true,
+            subscribedToUser: true,
+          },
+        });
+
+        users.forEach((user) => {
+          console.log('USER', user.userSubscribedTo);
+          userLoader.prime(user.id, user);
+        });
+
         return users;
       },
     },

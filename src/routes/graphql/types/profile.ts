@@ -9,7 +9,7 @@ import { UUIDType } from './uuid.js';
 import { MemberType, MemberTypeId } from './member.js';
 import { IContextType } from '../index.js';
 
-type IProfile = {
+export type IProfile = {
   id: string;
   isMale: boolean;
   yearOfBirth: number;
@@ -77,14 +77,8 @@ export const Profile = new GraphQLObjectType<IProfile, IContextType>({
     memberTypeId,
     memberType: {
       type: MemberType,
-      resolve: async (parent, args, context) => {
-        const { fastify } = context;
-        const { prisma } = fastify;
-        const { memberTypeId } = parent;
-        const memberType = await prisma.memberType.findUnique({
-          where: { id: memberTypeId },
-        });
-        return memberType;
+      resolve: async (parent, _args, { memberTypeLoader }) => {
+        return memberTypeLoader.load(parent.memberTypeId);
       },
     },
   }),

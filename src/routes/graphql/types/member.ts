@@ -7,7 +7,7 @@ import {
 } from 'graphql';
 import { IContextType } from '../index.js';
 
-type IMemberType = {
+export type IMemberType = {
   id: string;
   discount: number;
   postsLimitPerMonth: number;

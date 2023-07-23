@@ -11,10 +11,17 @@ import { Profile } from './profile.js';
 import { Post } from './post.js';
 import { IContextType } from '../index.js';
 
-type IUser = {
+type ISubscription = {
+  subscriberId: string;
+  authorId: string;
+};
+
+export type IUser = {
   id: string;
   name: string;
   balance: number;
+  subscribedToUser: ISubscription[];
+  userSubscribedTo: ISubscription[];
 };
 
 const name = {
@@ -61,64 +68,32 @@ export const UserType = new GraphQLObjectType<IUser, IContextType>({
     balance,
     profile: {
       type: Profile,
-      resolve: async (parent, args, context) => {
-        const { fastify } = context;
-        const { prisma } = fastify;
-        const { id } = parent;
-        const profile = await prisma.profile.findUnique({
-          where: { userId: id },
-        });
-        return profile;
+      resolve: async (parent, _args, { profileLoader }) => {
+        return profileLoader.load(parent.id);
       },
     },
     posts: {
       type: new GraphQLList(Post),
-      resolve: async (parent, args, context) => {
-        const { fastify } = context;
-        const { prisma } = fastify;
-        const { id } = parent;
-        const posts = await prisma.post.findMany({
-          where: { authorId: id },
-        });
-        return posts;
+      resolve: async (parent, _args, { postLoader }: IContextType) => {
+        return postLoader.load(parent.id);
       },
     },
     userSubscribedTo: {
       type: new GraphQLList(UserType),
-      resolve: async (parent, args, context) => {
-        const { fastify } = context;
-        const { prisma } = fastify;
-        const { id } = parent;
-        const userSubscribedTo = await prisma.user.findMany({
-          where: {
-            subscribedToUser: {
-              some: {
-                subscriberId: id,
-              },
-            },
-          },
-        });
-
-        return userSubscribedTo;
+      resolve: async (parent, _args, { userLoader }: IContextType) => {
+        return parent.userSubscribedTo
+          ? userLoader.loadMany(
+              parent.userSubscribedTo.map(({ subscriberId }) => subscriberId),
+            )
+          : [];
       },
     },
     subscribedToUser: {
       type: new GraphQLList(UserType),
-      resolve: async (parent, args, context) => {
-        const { fastify } = context;
-        const { prisma } = fastify;
-        const { id } = parent;
-        const subscribedToUser = await prisma.user.findMany({
-          where: {
-            userSubscribedTo: {
-              some: {
-                authorId: id,
-              },
-            },
-          },
-        });
-
-        return subscribedToUser;
+      resolve: async (parent, _args, { userLoader }) => {
+        return parent.subscribedToUser
+          ? userLoader.loadMany(parent.subscribedToUser.map(({ authorId }) => authorId))
+          : [];
       },
     },
   }),
