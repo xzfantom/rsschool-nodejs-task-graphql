@@ -1,21 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import { Profile } from './profile.js';
 import { UUIDType } from './uuid.js';
 import { MemberType, MemberTypeId } from './member.js';
 import { Post } from './post.js';
-import { User } from './user.js';
+import { UserType } from './user.js';
+import { IContextType } from '../index.js';
 
-export const Query = new GraphQLObjectType({
+export const Query = new GraphQLObjectType<unknown, IContextType>({
   name: 'Query',
   fields: () => ({
     profiles: {
       type: new GraphQLList(Profile),
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      resolve: async (_parent, _args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const profiles = await prisma.profile.findMany();
         return profiles;
       },
@@ -25,8 +23,9 @@ export const Query = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      resolve: async (_parent, args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = args;
         const profile = await prisma.profile.findUnique({
           where: { id },
@@ -36,8 +35,9 @@ export const Query = new GraphQLObjectType({
     },
     memberTypes: {
       type: new GraphQLList(MemberType),
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      resolve: async (_parent, _args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const memberTypes = await prisma.memberType.findMany();
         // console.log(memberTypes);
         return memberTypes;
@@ -48,8 +48,9 @@ export const Query = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(MemberTypeId) },
       },
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      resolve: async (_parent, args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = args;
         const memberType = await prisma.memberType.findUnique({
           where: { id },
@@ -60,8 +61,9 @@ export const Query = new GraphQLObjectType({
     },
     posts: {
       type: new GraphQLList(Post),
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      resolve: async (_parent, _args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const posts = await prisma.post.findMany();
         // console.log(posts);
         return posts;
@@ -72,8 +74,9 @@ export const Query = new GraphQLObjectType({
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      resolve: async (_parent, args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = args;
         const post = await prisma.post.findUnique({
           where: { id },
@@ -82,25 +85,22 @@ export const Query = new GraphQLObjectType({
       },
     },
     users: {
-      type: new GraphQLList(User),
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
+      type: new GraphQLList(UserType),
+      resolve: async (_parent, _args, context) => {
+        const { fastify } = context;
+        const { prisma } = fastify;
         const users = await prisma.user.findMany();
         // console.log(users);
         return users;
       },
     },
     user: {
-      type: User,
+      type: UserType,
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (parent, args, context) => {
-        const { prisma } = context;
-        const { id } = args;
-        const user = await prisma.user.findUnique({
-          where: { id },
-        });
+      resolve: async (_parent, args: { id: string }, { userLoader }: IContextType) => {
+        const user = await userLoader.load(args.id);
         return user;
       },
     },

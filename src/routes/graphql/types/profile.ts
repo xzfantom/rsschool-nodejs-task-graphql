@@ -7,6 +7,15 @@ import {
 } from 'graphql';
 import { UUIDType } from './uuid.js';
 import { MemberType, MemberTypeId } from './member.js';
+import { IContextType } from '../index.js';
+
+type IProfile = {
+  id: string;
+  isMale: boolean;
+  yearOfBirth: number;
+  userId: string;
+  memberTypeId: string;
+};
 
 const isMale = {
   type: new GraphQLNonNull(GraphQLBoolean),
@@ -54,7 +63,7 @@ export const ChangeProfileInput = new GraphQLInputObjectType({
   }),
 });
 
-export const Profile = new GraphQLObjectType({
+export const Profile = new GraphQLObjectType<IProfile, IContextType>({
   name: 'Profile',
   description: 'A profile',
   fields: () => ({
@@ -69,7 +78,8 @@ export const Profile = new GraphQLObjectType({
     memberType: {
       type: MemberType,
       resolve: async (parent, args, context) => {
-        const { prisma } = context;
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { memberTypeId } = parent;
         const memberType = await prisma.memberType.findUnique({
           where: { id: memberTypeId },

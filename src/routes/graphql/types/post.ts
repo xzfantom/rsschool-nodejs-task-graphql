@@ -5,6 +5,14 @@ import {
   GraphQLString,
 } from 'graphql';
 import { UUIDType } from './uuid.js';
+import { IContextType } from '../index.js';
+
+type IPost = {
+  id: string;
+  title: string;
+  content: string;
+  authorId: string;
+};
 
 const title = {
   type: new GraphQLNonNull(GraphQLString),
@@ -44,7 +52,7 @@ export const ChangePostInput = new GraphQLInputObjectType({
   }),
 });
 
-export const Post = new GraphQLObjectType({
+export const Post = new GraphQLObjectType<IPost, IContextType>({
   name: 'Post',
   description: 'A post',
   fields: () => ({

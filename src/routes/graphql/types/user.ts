@@ -9,6 +9,13 @@ import {
 import { UUIDType } from './uuid.js';
 import { Profile } from './profile.js';
 import { Post } from './post.js';
+import { IContextType } from '../index.js';
+
+type IUser = {
+  id: string;
+  name: string;
+  balance: number;
+};
 
 const name = {
   type: new GraphQLNonNull(GraphQLString),
@@ -42,7 +49,7 @@ export const ChangeUserInput = new GraphQLInputObjectType({
   }),
 });
 
-export const User = new GraphQLObjectType({
+export const UserType = new GraphQLObjectType<IUser, IContextType>({
   name: 'User',
   description: 'A user',
   fields: () => ({
@@ -55,7 +62,8 @@ export const User = new GraphQLObjectType({
     profile: {
       type: Profile,
       resolve: async (parent, args, context) => {
-        const { prisma } = context;
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = parent;
         const profile = await prisma.profile.findUnique({
           where: { userId: id },
@@ -66,7 +74,8 @@ export const User = new GraphQLObjectType({
     posts: {
       type: new GraphQLList(Post),
       resolve: async (parent, args, context) => {
-        const { prisma } = context;
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = parent;
         const posts = await prisma.post.findMany({
           where: { authorId: id },
@@ -75,9 +84,10 @@ export const User = new GraphQLObjectType({
       },
     },
     userSubscribedTo: {
-      type: new GraphQLList(User),
+      type: new GraphQLList(UserType),
       resolve: async (parent, args, context) => {
-        const { prisma } = context;
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = parent;
         const userSubscribedTo = await prisma.user.findMany({
           where: {
@@ -93,9 +103,10 @@ export const User = new GraphQLObjectType({
       },
     },
     subscribedToUser: {
-      type: new GraphQLList(User),
+      type: new GraphQLList(UserType),
       resolve: async (parent, args, context) => {
-        const { prisma } = context;
+        const { fastify } = context;
+        const { prisma } = fastify;
         const { id } = parent;
         const subscribedToUser = await prisma.user.findMany({
           where: {

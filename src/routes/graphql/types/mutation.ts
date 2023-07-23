@@ -1,14 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {
-  GraphQLBoolean,
-  GraphQLInt,
-  GraphQLNonNull,
-  GraphQLObjectType,
-  GraphQLString,
-} from 'graphql';
+import { GraphQLBoolean, GraphQLNonNull, GraphQLObjectType } from 'graphql';
 import { ChangeProfileInput, CreateProfileInput, Profile } from './profile.js';
 import { ChangePostInput, CreatePostInput, Post } from './post.js';
-import { ChangeUserInput, CreateUserInput, User } from './user.js';
+import { ChangeUserInput, CreateUserInput, UserType } from './user.js';
 import { UUIDType } from './uuid.js';
 
 export const Mutation = new GraphQLObjectType({
@@ -66,7 +60,7 @@ export const Mutation = new GraphQLObjectType({
       },
     },
     createUser: {
-      type: User,
+      type: UserType,
       args: {
         dto: { type: new GraphQLNonNull(CreateUserInput) },
       },
@@ -94,7 +88,7 @@ export const Mutation = new GraphQLObjectType({
       },
     },
     changeUser: {
-      type: User,
+      type: UserType,
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
         dto: { type: new GraphQLNonNull(ChangeUserInput) },
@@ -157,7 +151,7 @@ export const Mutation = new GraphQLObjectType({
       },
     },
     subscribeTo: {
-      type: User,
+      type: UserType,
       args: {
         userId: { type: new GraphQLNonNull(UUIDType) },
         authorId: { type: new GraphQLNonNull(UUIDType) },

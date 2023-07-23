@@ -5,6 +5,13 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
 } from 'graphql';
+import { IContextType } from '../index.js';
+
+type IMemberType = {
+  id: string;
+  discount: number;
+  postsLimitPerMonth: number;
+};
 
 export const MemberTypeId = new GraphQLEnumType({
   name: 'MemberTypeId',
@@ -21,7 +28,7 @@ export const MemberTypeId = new GraphQLEnumType({
   },
 });
 
-export const MemberType = new GraphQLObjectType({
+export const MemberType = new GraphQLObjectType<IMemberType, IContextType>({
   name: 'MemberType',
   description: 'A member type',
   fields: () => ({

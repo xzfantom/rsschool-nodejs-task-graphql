@@ -4,6 +4,10 @@ import { GraphQLSchema, graphql, parse, validate } from 'graphql';
 import { Query } from './types/query.js';
 import { Mutation } from './types/mutation.js';
 import depthLimit from 'graphql-depth-limit';
+import DataLoader from 'dataloader';
+import { UserType } from './types/user.js';
+import { FastifyInstance } from 'fastify';
+import { getUsersById } from './resolvers/user.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   fastify.route({
@@ -31,16 +35,23 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         };
       }
 
-      console.log('queryBody:', queryBody, variablesBody);
+      const userLoader = new DataLoader<string, typeof UserType>((keys) =>
+        getUsersById(fastify.prisma, keys),
+      );
 
       return await graphql({
         schema,
         source: queryBody,
         variableValues: variablesBody,
-        contextValue: fastify,
+        contextValue: { fastify, userLoader },
       });
     },
   });
 };
 
 export default plugin;
+
+export type IContextType = {
+  fastify: FastifyInstance;
+  userLoader: DataLoader<string, typeof UserType>;
+};
