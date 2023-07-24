@@ -82,9 +82,7 @@ export const UserType = new GraphQLObjectType<IUser, IContextType>({
       type: new GraphQLList(UserType),
       resolve: async (parent, _args, { userLoader }: IContextType) => {
         return parent.userSubscribedTo
-          ? userLoader.loadMany(
-              parent.userSubscribedTo.map(({ subscriberId }) => subscriberId),
-            )
+          ? userLoader.loadMany(parent.userSubscribedTo.map(({ authorId }) => authorId))
           : [];
       },
     },
@@ -92,7 +90,9 @@ export const UserType = new GraphQLObjectType<IUser, IContextType>({
       type: new GraphQLList(UserType),
       resolve: async (parent, _args, { userLoader }) => {
         return parent.subscribedToUser
-          ? userLoader.loadMany(parent.subscribedToUser.map(({ authorId }) => authorId))
+          ? userLoader.loadMany(
+              parent.subscribedToUser.map(({ subscriberId }) => subscriberId),
+            )
           : [];
       },
     },

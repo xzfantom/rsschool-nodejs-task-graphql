@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { GraphQLBoolean, GraphQLNonNull, GraphQLObjectType } from 'graphql';
-import { ChangeProfileInput, CreateProfileInput, Profile } from './profile.js';
-import { ChangePostInput, CreatePostInput, Post } from './post.js';
-import { ChangeUserInput, CreateUserInput, UserType } from './user.js';
+import { ChangeProfileInput, CreateProfileInput, IProfile, Profile } from './profile.js';
+import { ChangePostInput, CreatePostInput, IPost, Post } from './post.js';
+import { ChangeUserInput, CreateUserInput, IUser, UserType } from './user.js';
 import { UUIDType } from './uuid.js';
 import { IContextType } from '../index.js';
 
@@ -15,10 +15,10 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
         dto: { type: new GraphQLNonNull(CreatePostInput) },
       },
 
-      resolve: async (parent, args, context) => {
+      resolve: async (_, { dto }: { dto: Omit<IPost, 'id'> }, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
-        const { title, content, authorId } = args.dto;
+        const { title, content, authorId } = dto;
         const newPost = await prisma.post.create({
           data: { title, content, authorId },
         });
@@ -30,7 +30,7 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, args, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
         const { id } = args;
@@ -51,7 +51,7 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
         id: { type: new GraphQLNonNull(UUIDType) },
         dto: { type: new GraphQLNonNull(ChangePostInput) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, args, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
         const { id, dto } = args;
@@ -68,10 +68,10 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
       args: {
         dto: { type: new GraphQLNonNull(CreateUserInput) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (parent, { dto }: { dto: Omit<IUser, 'id'> }, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
-        const { name, balance } = args.dto;
+        const { name, balance } = dto;
         const newUser = await prisma.user.create({
           data: { name, balance },
         });
@@ -99,7 +99,7 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
         id: { type: new GraphQLNonNull(UUIDType) },
         dto: { type: new GraphQLNonNull(ChangeUserInput) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, args, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
         const { id, dto } = args;
@@ -116,10 +116,10 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
       args: {
         dto: { type: new GraphQLNonNull(CreateProfileInput) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, { dto }: { dto: Omit<IProfile, 'id'> }, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
-        const { yearOfBirth, userId, memberTypeId, isMale } = args.dto;
+        const { yearOfBirth, userId, memberTypeId, isMale } = dto;
         const newProfile = await prisma.profile.create({
           data: { yearOfBirth, userId, memberTypeId, isMale },
         });
@@ -148,7 +148,7 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
         id: { type: new GraphQLNonNull(UUIDType) },
         dto: { type: new GraphQLNonNull(ChangeProfileInput) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, args, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
         const { id, dto } = args;
@@ -166,7 +166,7 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
         userId: { type: new GraphQLNonNull(UUIDType) },
         authorId: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, args, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
         const { userId, authorId } = args;
@@ -192,11 +192,11 @@ export const Mutation = new GraphQLObjectType<unknown, IContextType>({
         userId: { type: new GraphQLNonNull(UUIDType) },
         authorId: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (parent, args, context) => {
+      resolve: async (_, args, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
         const { userId, authorId } = args;
-        const updatedUser = await prisma.subscribersOnAuthors.delete({
+        await prisma.subscribersOnAuthors.delete({
           where: {
             subscriberId_authorId: {
               subscriberId: userId,

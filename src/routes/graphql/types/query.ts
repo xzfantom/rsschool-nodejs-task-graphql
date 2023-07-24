@@ -28,10 +28,9 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (_parent, args, context) => {
+      resolve: async (_parent, { id }: { id: string }, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
-        const { id } = args;
         const profile = await prisma.profile.findUnique({
           where: { id },
         });
@@ -52,10 +51,9 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
       args: {
         id: { type: new GraphQLNonNull(MemberTypeId) },
       },
-      resolve: async (_parent, args, context) => {
+      resolve: async (_parent, { id }: { id: string }, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
-        const { id } = args;
         const memberType = await prisma.memberType.findUnique({
           where: { id },
         });
@@ -78,10 +76,9 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
       args: {
         id: { type: new GraphQLNonNull(UUIDType) },
       },
-      resolve: async (_parent, args, context) => {
+      resolve: async (_parent, { id }: { id: string }, context) => {
         const { fastify } = context;
         const { prisma } = fastify;
-        const { id } = args;
         const post = await prisma.post.findUnique({
           where: { id },
         });
@@ -102,6 +99,8 @@ export const Query = new GraphQLObjectType<unknown, IContextType>({
 
         const userSubscribedTo = !!fields.userSubscribedTo;
         const subscribedToUser = !!fields.subscribedToUser;
+        // const userSubscribedTo = true;
+        // const subscribedToUser = true;
 
         const users = await prisma.user.findMany({
           include: {
